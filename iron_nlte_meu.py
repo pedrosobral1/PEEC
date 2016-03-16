@@ -28,9 +28,6 @@ def find_index(y,x): #y,x sao arrays
 	return i
 
 ##########################################################################
-al=1
-silent=2
-
 def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	
 	#####verificar parametros dados#####
