@@ -123,64 +123,34 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	
 	nr=len(mg)
 
-	
-	######verificar valores de sl e sn######
-	#funcoes para verificar se indices estao correctos
-	def erro_sl():
-		try:
-			sl
-		except IndexError as e:
-			print (e)
-	def erro_sn():
-		try:
-			sn
-		except IndexError as e:
-			print (e)
-
-	def erro_sl1():
-		try:
-			sl[:,:,0,:]
-		except IndexError as e:
-			print (e)
-	def erro_sn1():
-		try:
-			sn[:,:,0,:]
-		except IndexError as e:
-			print (e)
-	def erro_sl2():
-		try:
-			sl[:,:,1:nr-dum-1,:]
-		except IndexError as e:
-			print (e)
-	def erro_sn2():
-		try:
-			sn[:,:,1:nr-dum-1,:]
-		except IndexError as e:
-			print (e)
-
-	#verificar entradas
-	if erro_sn() or erro_sl() != None:
-		def outofrange():
-			if not silent:
-				print ('Model missing from grid or not enough data points')
-			return np.array([-9,-9,-9])
+	#verificar se entradas sao todas -9
+	if np.max(sl)==-9 or np.max(sn)==-9:
+		if not silent:
+			print ('Model missing from grid or not enough data points')
+		return np.array([-9,-9,-9])
 	
 	#remover -9
 	dum=0
 	for i in range(nr):
-		if erro_sl1() or erro_sn1() != None:
+		c=np.minimum(sl[:,0,:,:],sn[:,0,:,:])==-9
+		if tuple(np.where(c==True)[0])!=():
 			if dum >= nr-2:
-				outofrange()
-			sl=sl[:,:,1:nr-dum-1,:]
-			sn=sn[:,:,1:nr-dum-1,:]
-			mg=mg[1:nr-dum-1]
+				if not silent:
+					print ('Model missing from grid or not enough data points')
+				return np.array([-9,-9,-9])
+			sl=sl[:,1:nr-dum,:,:]
+			sn=sn[:,1:nr-dum,:,:]
+			mg=mg[1:nr-dum]
 			dum=dum+1
-		if erro_sl2() or erro_sn2() != None:
+		d=np.minimum(sl[:,nr-dum-1,:,:],sn[:,nr-dum-1,:,:])==-9
+		if tuple(np.where(d==True)[0])!=():
 			if dum >= nr-2:
-				outofrange()
-			sl=sl[:,:,0:nr-dum-2,:]
-			sn=sn[:,:,0:nr-dum-2,:]
-			mg=mg[0:nr-dum-2]
+				if not silent:
+					print ('Model missing from grid or not enough data points')
+				return np.array([-9,-9,-9])
+			sl=sl[:,0:nr-dum-1,:,:]
+			sn=sn[:,0:nr-dum-1,:,:]
+			mg=mg[0:nr-dum-1]
 			dum=dum+1
 	nr=nr-dum
 	
