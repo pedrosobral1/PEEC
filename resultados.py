@@ -35,6 +35,14 @@ rwv=r.get('wv')
 
 def result(t,g,f,x,w,ti,tf,dt,gi,gf,dg,fin,ff,df):
 
+	#variaveis para usar na legenda do grafico
+	tii=ti
+	tff=tf
+	gii=gi
+	gff=gf
+	fii=fin
+	fff=ff
+
 	###criar ficheiro .txt com dado nome###
 	nome= "risca %8.3f angs.txt" % (r.get('wv')[w]*10)
 	
@@ -112,21 +120,32 @@ def result(t,g,f,x,w,ti,tf,dt,gi,gf,dg,fin,ff,df):
 	with PdfPages(("risca %8.3f angs_graphs.pdf" % (r.get('wv')[w]*10))) as pdf:
 
 		pl.figure()
-		pl.scatter(temp_x,temp_y,color='r',marker='+')
-		pl.title('LTE vs NLte c/ Temp')
+		pl.scatter(temp_x,temp_y,color='b',marker='+',s=40)
+		pl.title('T [%d,%d] - line %8.3f nm' %(tii,tff,r.get('wv')[w]),color='b')
+		pl.xlabel('Temperature [K]',color='b')
+		pl.ylabel('LTE-NLTE',color='b')
 		pdf.savefig()
 		pl.clf()	
 		
 		pl.figure()	
-		pl.scatter(grav_x,grav_y,color='r',marker='+')
-		pl.title('LTE vs NLTE c/ Surf Grav')
+		pl.scatter(grav_x,grav_y,color='b',marker='+',s=40)
+		pl.title('g [%d,%d] - line %8.3f nm' %(gii,gff,r.get('wv')[w]),color='b')
+		pl.xlabel('Log surface gravity [cgs]',color='b')
+		pl.ylabel('LTE-NLTE',color='b')
 		pdf.savefig()
 		pl.clf()
 
 		pl.figure()
-		pl.scatter(metal_x,metal_y,color='r',marker='+')
-		pl.title('LTE vs NLTE c/ Metal')
+		pl.scatter(metal_x,metal_y,color='b',marker='+',s=40)
+		pl.title('f [%d,%d] - line %8.3f nm' %(fii,fff,r.get('wv')[w]),color='b')
+		pl.xlabel('Metallicity [Fe/H]',color='b')
+		pl.ylabel('LTE-NLTE',color='b')
 		pdf.savefig()
 		pl.clf()
 
 	res.close()
+
+
+
+
+
