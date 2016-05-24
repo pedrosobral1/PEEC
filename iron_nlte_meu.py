@@ -29,12 +29,12 @@ def find_index(y,x): #y,x sao arrays
 
 ##########################################################################
 
-al=0 #pode ser 0 ou 1
-silent=False #se for false imprime tudo
+al=1 #pode ser 0 ou 1
+silent=True #se for false imprime tudo
 
 def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	
-	#####verificar parametros dados##### RETIRAR???
+	#####verificar parametros dados#####
 	if len(tuple(ip.getargspec(iron_nlte)[0])) != 8:
 		print ('CALLING SEQUENCE:\n	a=iron_nlte(e,t,g,f,x,w,/al) \nINPUTS: \n       e          [0.1,500]       Equivalent width [pm] (optional)\n       t          [4000.0,8000.0] Effective temperature [K])\n       g          [1.0,5.0]       Logarithm of surface gravity [cgs]\n       f          [-5.0,0.5]      Metallicity [Fe/H] (LTE)\n       x          [1,5]           Microturbulence [km/s]\n       w          [0,3345]        Line index\n\n       al         [0,1]           If flag is set, f is fixed and e\n                                  returned (optional)\n')                                                 
 		return [-9,-9,-9]
@@ -203,7 +203,6 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	#######LTE########
 	#abund LTE dada (al) --> encontrar largura equiv da curva de crescimento LTE
 	if al:
-		print ("hello")
 		if fi[1] == fi[0]:
 			l=0
 		else:
@@ -214,7 +213,6 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	#caso contrario, curva de crescimento --> abund LTE
 	else:
 		il=find_index(xl,np.log10(e))
-
 		if il == ():
 			if not silent:
 				print ('Equivalent width outside range of LTE curve-of-growth')
@@ -250,4 +248,3 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 		co=an-al
 
 	return [al,an,co]
-
