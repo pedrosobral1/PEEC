@@ -9,7 +9,7 @@ r=io.readsav('/home/pedrosobral/PEEC/NLTE/iron_grid.sav')
 rwv=r.get('wv')
 
 
-#Função result imprime um doc .txt com a diferença entre abundancias LTE e NLTE, indicando quais as variaveis fixas em cada momento.
+#Função result imprime um doc .txt com a diferença entre abundancias LTE e NLTE, indicando quais as variaveis fixas em cada momento e um pdf com os respectivos gráficos.
 #
 # Podemos estudar como varia esta diferenca com a temperatura (t), logaritmo da gravidade superficial (g), metalicidade (f) e índice de linha (w), enquanto largura equivalente (e) e microturbulencia (x) sao sempre fixas.
 #
@@ -130,9 +130,3 @@ def result(t,g,f,x,w,ti,tf,dt,gi,gf,dg,fin,ff,df):
 		pl.clf()
 
 	res.close()
-
-
-
-
-
-
