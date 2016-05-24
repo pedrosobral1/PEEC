@@ -162,7 +162,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 		if not silent:
 			print ('Metallicity outside range')
 
-			return np.array([-9,-9,-9])
+		return np.array([-9,-9,-9])
 
 
 	#######interpolacoes#######
