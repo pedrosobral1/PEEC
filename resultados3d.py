@@ -104,7 +104,7 @@ def result_3d(x,w,ti,tf,dt,gi,gf,dg,fin,ff,df):
 
 
 	###gráficos###
-	with PdfPages(("risca %8.3f angs, microturbulence %5f %s.pdf" % (r.get('wv')[w]*10,x,n))) as pdf:
+	with PdfPages(("risca %8.3f angs, microturbulence %1.1f %s.pdf" % (r.get('wv')[w]*10,x,n))) as pdf:
 
 		fig = pl.figure()
 		fig.set_size_inches(12,7)
