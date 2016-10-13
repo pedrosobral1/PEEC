@@ -33,7 +33,7 @@ rwv=r.get('wv')*10
 #
 #	outmoog(5777,4.44,0.02,1.02,"output","line1",1)
 
-def readoutmoog(t,logg,fe,x,name_input,name_output,rem):
+def readoutmoog(name_input,name_output,rem):
 
 	name_ifile="/home/pedrosobral/PEEC/school_codes/running_dir/%s.moog" %name_input
 
@@ -52,8 +52,26 @@ def readoutmoog(t,logg,fe,x,name_input,name_output,rem):
 
 	######FE I#####
 	
-	a=om.read(374) #header
-	omnew.write(a)
+	#header
+	h1=om.read(64) 
+	h2=om.read(81)
+	h3=om.read(16)
+	temp=om.read(4)
+	h4=om.read(17)
+	log_g=om.read(4)
+	h5=om.read(17)
+	microt=om.read(4)
+	h6=om.read(6)
+	metal=om.read(4)
+	h7=om.read(9)
+	h8=om.read(1+71+76)
+
+	t=float(temp)
+	logg=float(log_g)
+	fe=float(metal)
+	x=float(microt)
+	
+	omnew.write(h1),omnew.write(h2),omnew.write(h3),omnew.write(temp),omnew.write(h4),omnew.write(log_g),omnew.write(h5),omnew.write(microt),omnew.write(h6),omnew.write(metal),omnew.write(h7),omnew.write(h8)
 
 	for i in range(260): #info about lines
 		
@@ -159,10 +177,4 @@ def readoutmoog(t,logg,fe,x,name_input,name_output,rem):
 	om.close()	
 	omnew.close()
 
-
-
-def outmoog(t,logg,fe,x,name_input,name_output,rem):
-	cmd= "python interpol_MOOG.py %.0f %.0f %.0f %.0f" %(t,logg,fe,x)
-	os.system(cmd)
-	readoutmoog(t,logg,fe,x,name_input,name_output,rem)
 
