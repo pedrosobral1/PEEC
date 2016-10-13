@@ -4,11 +4,11 @@ import numpy as np
 import inspect as ip
 import scipy.io as io
 
-def find_index(y,x): #y,x sao arrays
-	ii=np.where(np.absolute(y-x) < 1e-8) #tuple (array([indices]),)
-	i=tuple(ii[0]) #tuple indices q satisfazem cond
+def find_index(y,x): #y,x are arrays
+	ii=np.where(np.absolute(y-x) < 1e-8) #tuple (array([index]),)
+	i=tuple(ii[0]) #tuple that satisfies the condition
 
-	if i != (): #caso hajam indices q satisfaçam cond
+	if i != (): #if there are index satifying the cond
 		i=np.array([i[0],i[0]])
 	else:
 		uu=np.where(y>x)
@@ -23,23 +23,45 @@ def find_index(y,x): #y,x sao arrays
 			i=()
 		else:
 			i=[l,u]
-			i=np.sort(i) #ordenar ind
+			i=np.sort(i) #arrange ind
 
 	return i
 
 ##########################################################################
 
-al=1 #pode ser 0 ou 1
-silent=True #se for false imprime tudo
+#FUNCTION iron_nlte:
+#
+#	it allows the calculation of LTE/NLTE abundances for a given neutral iron EW, using linear interpolation
+#
+#
+#INPUTS: 
+#
+#       e          [0.1,500]       Equivalent width [pm] (optional)
+#       t          [4000.0,8000.0] Effective temperature [K]
+#       g          [1.0,5.0]       Logarithm of surface gravity [cgs] 
+#       f          [-5.0,0.5]      Metallicity [Fe/H]
+#       x          [1,5]           Microturbulence [km/s]      
+#       w          [0,3345]        Line index
+#     
+#       al         [0,1]           Flag for LTE abundance. If al=1, "e" is treated as an output. If al=0, f is ignored.
+#
+#
+#OUTPUTS:
+#
+#	LTE, NLTE abundances and its difference.
+#
+
+al=1
+silent=True #False = prints everything
 
 def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	
-	#####verificar parametros dados#####
+	#####verify input parameters#####
 	if len(tuple(ip.getargspec(iron_nlte)[0])) != 8:
 		print ('CALLING SEQUENCE:\n	a=iron_nlte(e,t,g,f,x,w,/al) \nINPUTS: \n       e          [0.1,500]       Equivalent width [pm] (optional)\n       t          [4000.0,8000.0] Effective temperature [K])\n       g          [1.0,5.0]       Logarithm of surface gravity [cgs]\n       f          [-5.0,0.5]      Metallicity [Fe/H] (LTE)\n       x          [1,5]           Microturbulence [km/s]\n       w          [0,3345]        Line index\n\n       al         [0,1]           If flag is set, f is fixed and e\n                                  returned (optional)\n')                                                 
 		return [-9,-9,-9]
 	
-	######chamar variaveis comuns######
+	######common variables######
 	r=io.readsav('/home/pedrosobral/PEEC/NLTE/iron_grid.sav')
 	rwl=r.get('wl')
 	rwn=r.get('wn')
@@ -53,18 +75,18 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	rio=r.get('io')
 
 	mg,f=rfg+7.45,f+7.45
-	
-	#####encontrar indices de temp, surf grav e microturb#####
+
+	#####finds temp, surf grav and microturb indices#####
 	ti=find_index(rtg,t)
 	gi=find_index(rgg,g)
 	xi=find_index(rxg,x)
 	li=w
 	
-	######info sobre a linha #######
+	######line info#######
 	if not silent:
 		print ('Using calculations for %8.3f nm, EV_low= %7.3f eV, log(gf)= %7.3f' % (r.get('wv')[li],r.get('el')[li],np.log10(r.get('gf')[li])))
 
-	######verificar se parametros estao dentro do intervalo permitido######
+	######verifies if parameters are in the allowed range######
 		#equiv width	
 	if not silent:
 		if e < 0.1 or e > 100:
@@ -113,7 +135,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	
 
 	
-	######definir arrays c/ valores de wl e wn (r é dict de var comuns)######
+	######defines arrays with wl e wn values (r is a dictionary with common variables)######
 	
 	sl=np.array([[[[rwl[li,xi[0],0,gi[0],ti[0]],rwl[li,xi[0],0,gi[0],ti[1]]],[rwl[li,xi[0],0,gi[1],ti[0]],rwl[li,xi[0],0,gi[1],ti[1]]]],[[rwl[li,xi[0],1,gi[0],ti[0]],rwl[li,xi[0],1,gi[0],ti[1]]],[rwl[li,xi[0],1,gi[1],ti[0]],rwl[li,xi[0],1,gi[1],ti[1]]]],[[rwl[li,xi[0],2,gi[0],ti[0]],rwl[li,xi[0],2,gi[0],ti[1]]],[rwl[li,xi[0],2,gi[1],ti[0]],rwl[li,xi[0],2,gi[1],ti[1]]]],[[rwl[li,xi[0],3,gi[0],ti[0]],rwl[li,xi[0],3,gi[0],ti[1]]],[rwl[li,xi[0],3,gi[1],ti[0]],rwl[li,xi[0],3,gi[1],ti[1]]]],[[rwl[li,xi[0],4,gi[0],ti[0]],rwl[li,xi[0],4,gi[0],ti[1]]],[rwl[li,xi[0],4,gi[1],ti[0]],rwl[li,xi[0],4,gi[1],ti[1]]]],[[rwl[li,xi[0],5,gi[0],ti[0]],rwl[li,xi[0],5,gi[0],ti[1]]],[rwl[li,xi[0],5,gi[1],ti[0]],rwl[li,xi[0],5,gi[1],ti[1]]]],[[rwl[li,xi[0],6,gi[0],ti[0]],rwl[li,xi[0],6,gi[0],ti[1]]],[rwl[li,xi[0],6,gi[1],ti[0]],rwl[li,xi[0],6,gi[1],ti[1]]]],[[rwl[li,xi[0],7,gi[0],ti[0]],rwl[li,xi[0],7,gi[0],ti[1]]],[rwl[li,xi[0],7,gi[1],ti[0]],rwl[li,xi[0],7,gi[1],ti[1]]]],[[rwl[li,xi[0],8,gi[0],ti[0]],rwl[li,xi[0],8,gi[0],ti[1]]],[rwl[li,xi[0],8,gi[1],ti[0]],rwl[li,xi[0],8,gi[1],ti[1]]]],[[rwl[li,xi[0],9,gi[0],ti[0]],rwl[li,xi[0],9,gi[0],ti[1]]],[rwl[li,xi[0],9,gi[1],ti[0]],rwl[li,xi[0],9,gi[1],ti[1]]]],[[rwl[li,xi[0],10,gi[0],ti[0]],rwl[li,xi[0],10,gi[0],ti[1]]],[rwl[li,xi[0],10,gi[1],ti[0]],rwl[li,xi[0],10,gi[1],ti[1]]]],[[rwl[li,xi[0],11,gi[0],ti[0]],rwl[li,xi[0],11,gi[0],ti[1]]],[rwl[li,xi[0],11,gi[1],ti[0]],rwl[li,xi[0],11,gi[1],ti[1]]]],[[rwl[li,xi[0],12,gi[0],ti[0]],rwl[li,xi[0],12,gi[0],ti[1]]],[rwl[li,xi[0],12,gi[1],ti[0]],rwl[li,xi[0],12,gi[1],ti[1]]]],[[rwl[li,xi[0],13,gi[0],ti[0]],rwl[li,xi[0],13,gi[0],ti[1]]],[rwl[li,xi[0],13,gi[1],ti[0]],rwl[li,xi[0],13,gi[1],ti[1]]]],[[rwl[li,xi[0],14,gi[0],ti[0]],rwl[li,xi[0],14,gi[0],ti[1]]],[rwl[li,xi[0],14,gi[1],ti[0]],rwl[li,xi[0],14,gi[1],ti[1]]]],[[rwl[li,xi[0],15,gi[0],ti[0]],rwl[li,xi[0],15,gi[0],ti[1]]],[rwl[li,xi[0],15,gi[1],ti[0]],rwl[li,xi[0],15,gi[1],ti[1]]]],[[rwl[li,xi[0],16,gi[0],ti[0]],rwl[li,xi[0],16,gi[0],ti[1]]],[rwl[li,xi[0],16,gi[1],ti[0]],rwl[li,xi[0],16,gi[1],ti[1]]]],[[rwl[li,xi[0],17,gi[0],ti[0]],rwl[li,xi[0],17,gi[0],ti[1]]],[rwl[li,xi[0],17,gi[1],ti[0]],rwl[li,xi[0],17,gi[1],ti[1]]]],[[rwl[li,xi[0],18,gi[0],ti[0]],rwl[li,xi[0],18,gi[0],ti[1]]],[rwl[li,xi[0],18,gi[1],ti[0]],rwl[li,xi[0],18,gi[1],ti[1]]]],[[rwl[li,xi[0],19,gi[0],ti[0]],rwl[li,xi[0],19,gi[0],ti[1]]],[rwl[li,xi[0],19,gi[1],ti[0]],rwl[li,xi[0],19,gi[1],ti[1]]]],[[rwl[li,xi[0],20,gi[0],ti[0]],rwl[li,xi[0],20,gi[0],ti[1]]],[rwl[li,xi[0],20,gi[1],ti[0]],rwl[li,xi[0],20,gi[1],ti[1]]]],[[rwl[li,xi[0],21,gi[0],ti[0]],rwl[li,xi[0],21,gi[0],ti[1]]],[rwl[li,xi[0],21,gi[1],ti[0]],rwl[li,xi[0],21,gi[1],ti[1]]]],[[rwl[li,xi[0],22,gi[0],ti[0]],rwl[li,xi[0],22,gi[0],ti[1]]],[rwl[li,xi[0],22,gi[1],ti[0]],rwl[li,xi[0],22,gi[1],ti[1]]]]],
 [[[rwl[li,xi[1],0,gi[0],ti[0]],rwl[li,xi[1],0,gi[0],ti[1]]],[rwl[li,xi[1],0,gi[1],ti[0]],rwl[li,xi[1],0,gi[1],ti[1]]]],[[rwl[li,xi[1],1,gi[0],ti[0]],rwl[li,xi[1],1,gi[0],ti[1]]],[rwl[li,xi[1],1,gi[1],ti[0]],rwl[li,xi[1],1,gi[1],ti[1]]]],[[rwl[li,xi[1],2,gi[0],ti[0]],rwl[li,xi[1],2,gi[0],ti[1]]],[rwl[li,xi[1],2,gi[1],ti[0]],rwl[li,xi[1],2,gi[1],ti[1]]]],[[rwl[li,xi[1],3,gi[0],ti[0]],rwl[li,xi[1],3,gi[0],ti[1]]],[rwl[li,xi[1],3,gi[1],ti[0]],rwl[li,xi[1],3,gi[1],ti[1]]]],[[rwl[li,xi[1],4,gi[0],ti[0]],rwl[li,xi[1],4,gi[0],ti[1]]],[rwl[li,xi[1],4,gi[1],ti[0]],rwl[li,xi[1],4,gi[1],ti[1]]]],[[rwl[li,xi[1],5,gi[0],ti[0]],rwl[li,xi[1],5,gi[0],ti[1]]],[rwl[li,xi[1],5,gi[1],ti[0]],rwl[li,xi[1],5,gi[1],ti[1]]]],[[rwl[li,xi[1],6,gi[0],ti[0]],rwl[li,xi[1],6,gi[0],ti[1]]],[rwl[li,xi[1],6,gi[1],ti[0]],rwl[li,xi[1],6,gi[1],ti[1]]]],[[rwl[li,xi[1],7,gi[0],ti[0]],rwl[li,xi[1],7,gi[0],ti[1]]],[rwl[li,xi[1],7,gi[1],ti[0]],rwl[li,xi[1],7,gi[1],ti[1]]]],[[rwl[li,xi[1],8,gi[0],ti[0]],rwl[li,xi[1],8,gi[0],ti[1]]],[rwl[li,xi[1],8,gi[1],ti[0]],rwl[li,xi[1],8,gi[1],ti[1]]]],[[rwl[li,xi[1],9,gi[0],ti[0]],rwl[li,xi[1],9,gi[0],ti[1]]],[rwl[li,xi[1],9,gi[1],ti[0]],rwl[li,xi[1],9,gi[1],ti[1]]]],[[rwl[li,xi[1],10,gi[0],ti[0]],rwl[li,xi[1],10,gi[0],ti[1]]],[rwl[li,xi[1],10,gi[1],ti[0]],rwl[li,xi[1],10,gi[1],ti[1]]]],[[rwl[li,xi[1],11,gi[0],ti[0]],rwl[li,xi[1],11,gi[0],ti[1]]],[rwl[li,xi[1],11,gi[1],ti[0]],rwl[li,xi[1],11,gi[1],ti[1]]]],[[rwl[li,xi[1],12,gi[0],ti[0]],rwl[li,xi[1],12,gi[0],ti[1]]],[rwl[li,xi[1],12,gi[1],ti[0]],rwl[li,xi[1],12,gi[1],ti[1]]]],[[rwl[li,xi[1],13,gi[0],ti[0]],rwl[li,xi[1],13,gi[0],ti[1]]],[rwl[li,xi[1],13,gi[1],ti[0]],rwl[li,xi[1],13,gi[1],ti[1]]]],[[rwl[li,xi[1],14,gi[0],ti[0]],rwl[li,xi[1],14,gi[0],ti[1]]],[rwl[li,xi[1],14,gi[1],ti[0]],rwl[li,xi[1],14,gi[1],ti[1]]]],[[rwl[li,xi[1],15,gi[0],ti[0]],rwl[li,xi[1],15,gi[0],ti[1]]],[rwl[li,xi[1],15,gi[1],ti[0]],rwl[li,xi[1],15,gi[1],ti[1]]]],[[rwl[li,xi[1],16,gi[0],ti[0]],rwl[li,xi[1],16,gi[0],ti[1]]],[rwl[li,xi[1],16,gi[1],ti[0]],rwl[li,xi[1],16,gi[1],ti[1]]]],[[rwl[li,xi[1],17,gi[0],ti[0]],rwl[li,xi[1],17,gi[0],ti[1]]],[rwl[li,xi[1],17,gi[1],ti[0]],rwl[li,xi[1],17,gi[1],ti[1]]]],[[rwl[li,xi[1],18,gi[0],ti[0]],rwl[li,xi[1],18,gi[0],ti[1]]],[rwl[li,xi[1],18,gi[1],ti[0]],rwl[li,xi[1],18,gi[1],ti[1]]]],[[rwl[li,xi[1],19,gi[0],ti[0]],rwl[li,xi[1],19,gi[0],ti[1]]],[rwl[li,xi[1],19,gi[1],ti[0]],rwl[li,xi[1],19,gi[1],ti[1]]]],[[rwl[li,xi[1],20,gi[0],ti[0]],rwl[li,xi[1],20,gi[0],ti[1]]],[rwl[li,xi[1],20,gi[1],ti[0]],rwl[li,xi[1],20,gi[1],ti[1]]]],[[rwl[li,xi[1],21,gi[0],ti[0]],rwl[li,xi[1],21,gi[0],ti[1]]],[rwl[li,xi[1],21,gi[1],ti[0]],rwl[li,xi[1],21,gi[1],ti[1]]]],[[rwl[li,xi[1],22,gi[0],ti[0]],rwl[li,xi[1],22,gi[0],ti[1]]],[rwl[li,xi[1],22,gi[1],ti[0]],rwl[li,xi[1],22,gi[1],ti[1]]]]]])
@@ -122,14 +144,14 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 [[[rwn[li,xi[1],0,gi[0],ti[0]],rwn[li,xi[1],0,gi[0],ti[1]]],[rwn[li,xi[1],0,gi[1],ti[0]],rwn[li,xi[1],0,gi[1],ti[1]]]],[[rwn[li,xi[1],1,gi[0],ti[0]],rwn[li,xi[1],1,gi[0],ti[1]]],[rwn[li,xi[1],1,gi[1],ti[0]],rwn[li,xi[1],1,gi[1],ti[1]]]],[[rwn[li,xi[1],2,gi[0],ti[0]],rwn[li,xi[1],2,gi[0],ti[1]]],[rwn[li,xi[1],2,gi[1],ti[0]],rwn[li,xi[1],2,gi[1],ti[1]]]],[[rwn[li,xi[1],3,gi[0],ti[0]],rwn[li,xi[1],3,gi[0],ti[1]]],[rwn[li,xi[1],3,gi[1],ti[0]],rwn[li,xi[1],3,gi[1],ti[1]]]],[[rwn[li,xi[1],4,gi[0],ti[0]],rwn[li,xi[1],4,gi[0],ti[1]]],[rwn[li,xi[1],4,gi[1],ti[0]],rwn[li,xi[1],4,gi[1],ti[1]]]],[[rwn[li,xi[1],5,gi[0],ti[0]],rwn[li,xi[1],5,gi[0],ti[1]]],[rwn[li,xi[1],5,gi[1],ti[0]],rwn[li,xi[1],5,gi[1],ti[1]]]],[[rwn[li,xi[1],6,gi[0],ti[0]],rwn[li,xi[1],6,gi[0],ti[1]]],[rwn[li,xi[1],6,gi[1],ti[0]],rwn[li,xi[1],6,gi[1],ti[1]]]],[[rwn[li,xi[1],7,gi[0],ti[0]],rwn[li,xi[1],7,gi[0],ti[1]]],[rwn[li,xi[1],7,gi[1],ti[0]],rwn[li,xi[1],7,gi[1],ti[1]]]],[[rwn[li,xi[1],8,gi[0],ti[0]],rwn[li,xi[1],8,gi[0],ti[1]]],[rwn[li,xi[1],8,gi[1],ti[0]],rwn[li,xi[1],8,gi[1],ti[1]]]],[[rwn[li,xi[1],9,gi[0],ti[0]],rwn[li,xi[1],9,gi[0],ti[1]]],[rwn[li,xi[1],9,gi[1],ti[0]],rwn[li,xi[1],9,gi[1],ti[1]]]],[[rwn[li,xi[1],10,gi[0],ti[0]],rwn[li,xi[1],10,gi[0],ti[1]]],[rwn[li,xi[1],10,gi[1],ti[0]],rwn[li,xi[1],10,gi[1],ti[1]]]],[[rwn[li,xi[1],11,gi[0],ti[0]],rwn[li,xi[1],11,gi[0],ti[1]]],[rwn[li,xi[1],11,gi[1],ti[0]],rwn[li,xi[1],11,gi[1],ti[1]]]],[[rwn[li,xi[1],12,gi[0],ti[0]],rwn[li,xi[1],12,gi[0],ti[1]]],[rwn[li,xi[1],12,gi[1],ti[0]],rwn[li,xi[1],12,gi[1],ti[1]]]],[[rwn[li,xi[1],13,gi[0],ti[0]],rwn[li,xi[1],13,gi[0],ti[1]]],[rwn[li,xi[1],13,gi[1],ti[0]],rwn[li,xi[1],13,gi[1],ti[1]]]],[[rwn[li,xi[1],14,gi[0],ti[0]],rwn[li,xi[1],14,gi[0],ti[1]]],[rwn[li,xi[1],14,gi[1],ti[0]],rwn[li,xi[1],14,gi[1],ti[1]]]],[[rwn[li,xi[1],15,gi[0],ti[0]],rwn[li,xi[1],15,gi[0],ti[1]]],[rwn[li,xi[1],15,gi[1],ti[0]],rwn[li,xi[1],15,gi[1],ti[1]]]],[[rwn[li,xi[1],16,gi[0],ti[0]],rwn[li,xi[1],16,gi[0],ti[1]]],[rwn[li,xi[1],16,gi[1],ti[0]],rwn[li,xi[1],16,gi[1],ti[1]]]],[[rwn[li,xi[1],17,gi[0],ti[0]],rwn[li,xi[1],17,gi[0],ti[1]]],[rwn[li,xi[1],17,gi[1],ti[0]],rwn[li,xi[1],17,gi[1],ti[1]]]],[[rwn[li,xi[1],18,gi[0],ti[0]],rwn[li,xi[1],18,gi[0],ti[1]]],[rwn[li,xi[1],18,gi[1],ti[0]],rwn[li,xi[1],18,gi[1],ti[1]]]],[[rwn[li,xi[1],19,gi[0],ti[0]],rwn[li,xi[1],19,gi[0],ti[1]]],[rwn[li,xi[1],19,gi[1],ti[0]],rwn[li,xi[1],19,gi[1],ti[1]]]],[[rwn[li,xi[1],20,gi[0],ti[0]],rwn[li,xi[1],20,gi[0],ti[1]]],[rwn[li,xi[1],20,gi[1],ti[0]],rwn[li,xi[1],20,gi[1],ti[1]]]],[[rwn[li,xi[1],21,gi[0],ti[0]],rwn[li,xi[1],21,gi[0],ti[1]]],[rwn[li,xi[1],21,gi[1],ti[0]],rwn[li,xi[1],21,gi[1],ti[1]]]],[[rwn[li,xi[1],22,gi[0],ti[0]],rwn[li,xi[1],22,gi[0],ti[1]]],[rwn[li,xi[1],22,gi[1],ti[0]],rwn[li,xi[1],22,gi[1],ti[1]]]]]])
 	
 	nr=len(mg)
-
-	#verificar se entradas sao todas -9
+	
+	#verify if all entries are -9
 	if np.max(sl)==-9 or np.max(sn)==-9:
 		if not silent:
 			print ('Model missing from grid or not enough data points')
 		return np.array([-9,-9,-9])
 	
-	#remover -9
+	#remove -9 entries
 	dum=0
 	for i in range(nr):
 		c=np.minimum(sl[:,0,:,:],sn[:,0,:,:])==-9
@@ -155,9 +177,8 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	nr=nr-dum
 	
 
-	#######indice da metalicidade#####
+	#######metallicity index#####
 	fi=find_index(mg,f)
-
 	if fi == ():
 		if not silent:
 			print ('Metallicity outside range')
@@ -165,10 +186,10 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 		return np.array([-9,-9,-9])
 
 
-	#######interpolacoes#######
-	#interpolação da temp eff x8	
+	#######interpolation#######
+	#temp eff interpolation x8	
 	tl=np.zeros((2,nr,2))
-	tn=np.zeros((2,nr,2))
+	tn=np.zeros((2,nr,2))	
 	if ti[1] == ti[0]:
 		l=0
 	else:
@@ -179,7 +200,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 			tl[m,:,k]=sl[m,:,k,0]+l*(sl[m,:,k,1]-sl[m,:,k,0])
 			tn[m,:,k]=sn[m,:,k,0]+l*(sn[m,:,k,1]-sn[m,:,k,0])
 	
-	#interpolaçao surf grav x4
+	#surf grav interpolation x4
 	gl=np.zeros((2,nr))
 	gn=np.zeros((2,nr))
 	if gi[1] == gi[0]:
@@ -190,7 +211,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 		gl[m,:]=tl[m,:,0]+l*(tl[m,:,1]-tl[m,:,0])
 		gn[m,:]=tn[m,:,0]+l*(tn[m,:,1]-tn[m,:,0])
 	
-	#interpolaçao microturb x2
+	#microturb interpolation x2
 	xl=np.zeros(nr)
 	xn=np.zeros(nr)
 	if xi[1] == xi[0]:
@@ -201,7 +222,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	xn=gn[0,:]+l*(gn[1,:]-gn[0,:])
 
 	#######LTE########
-	#abund LTE dada (al) --> encontrar largura equiv da curva de crescimento LTE
+	#given abund LTE (al) --> find EW from LTE curve-of-growth
 	if al:
 		if fi[1] == fi[0]:
 			l=0
@@ -210,7 +231,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 		al=f
 		e=10**(xl[fi[0]]+l*(xl[fi[1]]-xl[fi[0]]))
 
-	#caso contrario, curva de crescimento --> abund LTE
+	#otherwise, curve-of-growth --> LTE abund
 	else:
 		il=find_index(xl,np.log10(e))
 		if il == ():
@@ -226,7 +247,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	
 
 	#######NLTE#######
-	#curva de crescim --> abund NLTE
+	#curve-of-growth --> NLTE abund
 	inn =find_index(xn,np.log10(e))
 	if inn == ():
 		if not silent:
@@ -241,7 +262,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 
 	
 
-	#outputs finais
+	#final outputs
 	if al == -9 or an == -9:
 		co=-9
 	else:
