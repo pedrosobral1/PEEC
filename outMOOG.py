@@ -17,10 +17,6 @@ rwv=r.get('wv')*10
 #
 #INPUTS:
 #
-#	t		Effective temperature [K]
-#	g		Logarithm of surface gravity [cgs]
-#	fe		Metallicity [Fe/H]
-#	x		Microturbulence [km/s]
 #	name_input	name of the output MOOG file to read (str)
 #	name_output	name of the output txt files (str)
 #	rem		removes (1) or keeps (0) the null nlte values
@@ -31,7 +27,7 @@ rwv=r.get('wv')*10
 #
 #CALLING EXAMPLE:
 #
-#	outmoog(5777,4.44,0.02,1.02,"output","line1",1)
+#	outmoog("output","line1",1)
 
 def readoutmoog(name_input,name_output,rem):
 
@@ -176,5 +172,3 @@ def readoutmoog(name_input,name_output,rem):
 
 	om.close()	
 	omnew.close()
-
-
