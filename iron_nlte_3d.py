@@ -6,9 +6,9 @@ import scipy.io as io
 
 def find_index(y,x): #y,x sao arrays
 	ii=np.where(np.absolute(y-x) < 1e-8) #tuple (array([indices]),)
-	i=tuple(ii[0]) #tuple indices q satisfazem cond
+	i=tuple(ii[0]) #tuple index satisfying the condition
 
-	if i != (): #caso hajam indices q satisfaçam cond
+	if i != (): #in case that exist indices satistying the condition
 		i=np.array([i[0],i[0]])
 	else:
 		uu=np.where(y>x)
@@ -23,24 +23,46 @@ def find_index(y,x): #y,x sao arrays
 			i=()
 		else:
 			i=[l,u]
-			i=np.sort(i) #ordenar ind
+			i=np.sort(i) #index arrangement
 
 	return i
 
 ##########################################################################
 
-al=1 #pode ser 0 ou 1
-silent=True #se for false imprime tudo
+#FUNCTION iron_nlte_3d:
+#
+#	it allows the calculation of LTE/NLTE abundances for a given neutral iron EW, using linear interpolation, for several stars.
+#
+#
+#INPUTS (arrays): 
+#
+#       e          [0.1,500]       Equivalent width [pm] (optional)
+#       t          [4000.0,8000.0] Effective temperature [K]
+#       g          [1.0,5.0]       Logarithm of surface gravity [cgs] 
+#       f          [-5.0,0.5]      Metallicity [Fe/H]
+#       x          [1,5]           Microturbulence [km/s]      
+#       w          [0,3345]        Line index
+#     
+#       al         [0,1]           Flag for LTE abundance. If al=1, "e" is treated as an output. If al=0, f is ignored.
+#
+#
+#OUTPUTS:
+#
+#	LTE, NLTE abundances and its difference.
+#
+
+al=1 
+silent=True #False => prints everything
 
 
-#ATENÇAO: se inputs estiverem fora da grid, o programa adiciona o co=-9 a co_tot
+#ATENTION: if inputs are not in the grid, the script adds co=-9 to co_tot
 
-def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
+def iron_nlte_3d(e,t,g,f,w,al=al,silent=silent):
 	'semelhante a iron_nlte mas agora admite inputs de t,g ou f em forma de array. Apenas 2 de cada vez'
 	'retorna grid com diferenças das abundâncias'
 	
 	#####verificar parametros dados#####
-	if len(tuple(ip.getargspec(iron_nlte_3d)[0])) != 8:
+	if len(tuple(ip.getargspec(iron_nlte_3d)[0])) != 7:
 		print ('CALLING SEQUENCE:\n	a=iron_nlte(e,t,g,f,x,w,/al) \nINPUTS: \n       e          [0.1,500]       Equivalent width [pm] (optional)\n       t          [4000.0,8000.0] Effective temperature [K])\n       g          [1.0,5.0]       Logarithm of surface gravity [cgs]\n       f          [-5.0,0.5]      Metallicity [Fe/H] (LTE)\n       x          [1,5]           Microturbulence [km/s]\n       w          [0,3345]        Line index\n\n       al         [0,1]           If flag is set, f is fixed and e\n                                  returned (optional)\n')                                                 
 		return [-9,-9,-9]
 	
@@ -63,6 +85,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 	t=np.array(t)
 	g=np.array(g)
 	f=np.array(f)
+	
 	
 	#avaliar quais sao de apenas 1 nr e criar nr de linhas (horiz) e colunas (vert)
 	if f.size==1:
@@ -92,8 +115,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 		for j_horiz in range(horiz):#escolhe a linha
 	
 			####quando f é valor unico###
-			if f.size==1:
-				#encontrar indices de temp, surf grav e metal#
+			if f.size==1: #encontrar indices de temp, surf grav e metal#
 				t=T[j_horiz][i_vert]
 				g=G[j_horiz][i_vert]
 				f=f
@@ -102,8 +124,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 				
 
 			####quando g é valor unico####
-			elif g.size==1:
-				#encontrar indices de temp, surf grav e metal#
+			elif g.size==1: #encontrar indices de temp, surf grav e metal#
 				t=[j_horiz][i_vert]
 				g=g
 				f=[j_horiz][i_vert]
@@ -112,8 +133,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 				
 					
 			#####quando t é valor unico####
-			elif t.size==1:
-				#encontrar indices de temp, surf grav e metal#
+			elif t.size==1: #encontrar indices de temp, surf grav e metal#
 				t=t
 				g=G[j_horiz][i_vert]
 				f=F[j_horiz][i_vert]
@@ -121,7 +141,12 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 				gi=find_index(rtg,g)
 
 
-
+			#relaçao entre g e x
+			if g>4:
+				x=1
+			else:
+				x=2
+			
 
 			#mg,indice risca e indice metal
 			mg=rfg+7.45
@@ -251,7 +276,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 			nr=nr-dum
 	
 
-			#######indice da metalicidade#####
+			#######metallicity index#####
 			fi=find_index(mg,f)
 			if fi == ():
 				if not silent:
@@ -262,8 +287,8 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 				co_tot[j_horiz][i_vert]=-9					
 				continue
 			
-			#######interpolacoes#######
-			#interpolação da temp eff x8	
+			#######interpolation#######
+			#temp eff interpolation x8	
 			tl=np.zeros((2,nr,2))
 			tn=np.zeros((2,nr,2))
 			if ti[1] == ti[0]:
@@ -276,7 +301,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 					tl[m,:,k]=sl[m,:,k,0]+l*(sl[m,:,k,1]-sl[m,:,k,0])
 					tn[m,:,k]=sn[m,:,k,0]+l*(sn[m,:,k,1]-sn[m,:,k,0])
 	
-			#interpolaçao surf grav x4
+			#surf grav interpolation x4
 			gl=np.zeros((2,nr))
 			gn=np.zeros((2,nr))
 			if gi[1] == gi[0]:
@@ -287,7 +312,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 				gl[m,:]=tl[m,:,0]+l*(tl[m,:,1]-tl[m,:,0])
 				gn[m,:]=tn[m,:,0]+l*(tn[m,:,1]-tn[m,:,0])
 	
-			#interpolaçao microturb x2
+			#microturb interpolation x2
 			xl=np.zeros(nr)
 			xn=np.zeros(nr)
 			if xi[1] == xi[0]:
@@ -299,7 +324,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 
 			
 			#######LTE########
-			#abund LTE dada (al) --> encontrar largura equiv da curva de crescimento LTE
+			#given abund LTE (al) --> find EW from LTE curve-of-growth
 			if al:
 				if fi[1] == fi[0]:
 					l=0
@@ -308,7 +333,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 				al=f
 				e=10**(xl[fi[0]]+l*(xl[fi[1]]-xl[fi[0]]))
 
-			#caso contrario, curva de crescimento --> abund LTE
+			#otherwise, curve-of-growth --> LTE abund
 			else:
 				il=find_index(xl,np.log10(e))
 				if il == ():
@@ -324,7 +349,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 
 
 			#######NLTE#######
-			#curva de crescim --> abund NLTE
+			#curve-of-growth --> NLTE abund
 			inn =find_index(xn,np.log10(e))
 			if inn == ():
 				if not silent:
@@ -338,7 +363,7 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 				an=mg[inn[0]]+l*(mg[inn[1]]-mg[inn[0]])
 				
 
-			#outputs finais
+			#final outputs
 			if al == -9 or an == -9:
 				co=-9
 				al_tot[j_horiz][i_vert]=al
@@ -352,4 +377,5 @@ def iron_nlte_3d(e,t,g,f,x,w,al=al,silent=silent):
 				co_tot[j_horiz][i_vert]=co
 	
 	return co_tot
+
 
