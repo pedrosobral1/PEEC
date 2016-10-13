@@ -27,7 +27,7 @@ rwv=r.get('wv')*10
 #
 #CALLING EXAMPLE:
 #
-#	outmoog("output","line1",1)
+#	outmoog("output","out1",1)
 
 def readoutmoog(name_input,name_output,rem):
 
