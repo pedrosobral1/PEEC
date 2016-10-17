@@ -5,6 +5,7 @@ import numpy as np
 import scipy.io as io
 from iron_nlte import iron_nlte
 import matplotlib.pyplot as pl
+import shutil
 
 r=io.readsav('/home/pedrosobral/PEEC/NLTE/iron_grid.sav')
 rwv=r.get('wv')*10
@@ -23,7 +24,7 @@ rwv=r.get('wv')*10
 #
 #OUTPUTS:
 #
-#	2 txt files (lte and nlte abundances).
+#	3 txt files (lte, nlte abundances and lines with null nlte values).
 #
 #CALLING EXAMPLE:
 #
@@ -37,14 +38,21 @@ def readoutmoog(name_input,name_output,rem):
 
 	name_ofile_nlte="/home/pedrosobral/PEEC/school_codes/running_dir/results/%s_nlte.txt" %name_output
 
-	#transform output.moog to txt file
-	os.rename(name_ifile, name_ofile_lte)
+	#copies output.moog to "results" folder
+	shutil.copy2(name_ifile,"/home/pedrosobral/PEEC/school_codes/running_dir/results/")
+	
+	#transforms output.moog to txt file
+	os.rename("/home/pedrosobral/PEEC/school_codes/running_dir/results/%s.moog" %name_input, name_ofile_lte)
 
 	om=open(name_ofile_lte,'r')
 	
 	#creates a new txt file for NLTE abundances
 	omnew=open(name_ofile_nlte,'w')
 	
+	#creates a txt file to write lines with null NLTE abundance
+	ml=open("/home/pedrosobral/PEEC/school_codes/running_dir/results/%s_null_nlte.txt"%name_output,'w')
+	ml.write("Lines with null NLTE abundance \n \n")
+	ml.write("FE I \n")
 
 	######FE I#####
 	
@@ -109,7 +117,11 @@ def readoutmoog(name_input,name_output,rem):
 			abund=iron_nlte(10.,t,logg,fe,x,w[0][0])
 			nlte=abund[1]
 			if nlte==-9:
-				continue #continues cycle without printing nlte abundance
+				ml.write(b)
+				ml.write("\n")
+				if rem==1:
+					continue #continues cycle without printing nlte abundance
+
 
 
 		#write to the new txt file
@@ -122,6 +134,8 @@ def readoutmoog(name_input,name_output,rem):
 	f=om.read(71+76) #header
 	omnew.write("\n\n\n\n")
 	omnew.write(f)
+
+	ml.write("\n\nFE II \n")
 
 	for i in range(35): #info about lines
 		
@@ -162,8 +176,11 @@ def readoutmoog(name_input,name_output,rem):
 		else:
 			abund=iron_nlte(10.,t,logg,fe,x,w[0][0])
 			nlte=abund[1]
-			if rem==1:
-				continue #continues cycle without printing nlte abundance
+			if nlte==-9:
+				ml.write(b)
+				ml.write("\n")
+				if rem==1:
+					continue #continues cycle without printing nlte abundance
 
 
 		#write to the new txt file
@@ -172,3 +189,4 @@ def readoutmoog(name_input,name_output,rem):
 
 	om.close()	
 	omnew.close()
+	ml.close()
