@@ -18,9 +18,11 @@ rwv=r.get('wv')*10
 #
 #INPUTS:
 #
-#	name_input	name of the output MOOG file to read (str)
+#	dir_input	directory of the MOOG input file (str)
+#	name_input	name of the input MOOG file to read (str)
+#	dir_output	directory for the output file (str)
 #	name_output	name of the output txt files (str)
-#	rem		removes (1) or keeps (0) the null nlte values
+#	rem		removes (1) or keeps (0) the null nlte values. If 0 is chosen, it calculates the average NLTE abundance for those null points.
 #
 #OUTPUTS:
 #
@@ -28,21 +30,30 @@ rwv=r.get('wv')*10
 #
 #CALLING EXAMPLE:
 #
-#	outmoog("output","out1",1)
+#	outmoog("/home/pedrosobral/PEEC","output","/home/pedrosobral/results","mine",1)
 
-def readoutmoog(name_input,name_output,rem):
 
-	name_ifile="/home/pedrosobral/PEEC/school_codes/running_dir/%s.moog" %name_input
+def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
+	'FUNCTION outmoog:\n    it uses iron_nlte and readoutmoog function to calculate NLTE abundances for some iron lines. These lines are given by an input file (obtained using MOOG method).\n\nINPUTS:\n    dir_input      directory of the MOOG input file (str)\n    name_input     name of the input MOOG file to read (str)\n    dir_output     directory for the output file (str)\n    name_output    name of the output txt files (str)\n    rem            removes (1) or keeps (0) the null nlte values.If 0 is chosen, it calculates the average NLTE abundance for those null points\n\nOUTPUTS:\n    3 txt files (lte, nlte abundances and lines with null nlte values).\n\nCALLING EXAMPLE:\n    outmoog("/home/pedrosobral/PEEC","output","/home/pedrosobral/results","mine",1)'
 
-	name_ofile_lte="/home/pedrosobral/PEEC/school_codes/running_dir/results/%s_lte.txt" %name_output
 
-	name_ofile_nlte="/home/pedrosobral/PEEC/school_codes/running_dir/results/%s_nlte.txt" %name_output
+	name_ifile="%s/%s.moog" %(dir_input,name_input)
+
+	name_ofile_lte="%s/%s_lte.txt" %(dir_output,name_output)
+
+	if rem==0:
+		name_ofile_nlte="%s/%s_nlte.txt" %(dir_output,name_output)
+	
+	else:
+		name_ofile_nlte="%s/%s_nlte_1.txt" %(dir_output,name_output)
+
+	name_ofile_nlte_0="%s/%s_nlte_0.txt" %(dir_output,name_output)
 
 	#copies output.moog to "results" folder
-	shutil.copy2(name_ifile,"/home/pedrosobral/PEEC/school_codes/running_dir/results/")
+	shutil.copy2(name_ifile,"%s"%dir_output)
 	
 	#transforms output.moog to txt file
-	os.rename("/home/pedrosobral/PEEC/school_codes/running_dir/results/%s.moog" %name_input, name_ofile_lte)
+	os.rename("%s/%s.moog" %(dir_output,name_input), name_ofile_lte)
 
 	om=open(name_ofile_lte,'r')
 	
@@ -50,143 +61,212 @@ def readoutmoog(name_input,name_output,rem):
 	omnew=open(name_ofile_nlte,'w')
 	
 	#creates a txt file to write lines with null NLTE abundance
-	ml=open("/home/pedrosobral/PEEC/school_codes/running_dir/results/%s_null_nlte.txt"%name_output,'w')
+	ml=open("%s/%s_null_nlte.txt"%(dir_output,name_output),'w')
 	ml.write("Lines with null NLTE abundance \n \n")
 	ml.write("FE I \n")
-
-	######FE I#####
 	
-	#header
-	h1=om.read(64) 
-	h2=om.read(81)
-	h3=om.read(16)
-	temp=om.read(4)
-	h4=om.read(17)
-	log_g=om.read(4)
-	h5=om.read(17)
-	microt=om.read(4)
-	h6=om.read(6)
-	metal=om.read(4)
-	h7=om.read(9)
-	h8=om.read(1+71+76)
 
-	t=float(temp)
-	logg=float(log_g)
-	fe=float(metal)
-	x=float(microt)
+
+	########### READING AND WRITING FILES ##########
+
+	size=len(om.readlines())
 	
-	omnew.write(h1),omnew.write(h2),omnew.write(h3),omnew.write(temp),omnew.write(h4),omnew.write(log_g),omnew.write(h5),omnew.write(microt),omnew.write(h6),omnew.write(metal),omnew.write(h7),omnew.write(h8)
+	om=open(name_ofile_lte,'r')
 
-	for i in range(260): #info about lines
-		
-		b1=om.read(2)
-		b=om.read(8) #wavelenght
+	numbers=['0','1','2','3','4','5','6','7','8','9']
 
-		c1=om.read(3)
-		c=om.read(8) #ID
+	j=np.array([]) #acumulate for FE I
+	l=np.array([]) #acumulate for FE II
+	nlte_values_I=np.array([])	
+	nlte_values_II=np.array([])
+	
+	k=0 #count number of iterations
+	r=0 #count line number for #lines
 
-		d1=om.read(3)
-		d=om.read(5) #EP
+	################################### FE I ###################################
 
-		e1=om.read(2)
-		e=om.read(6) #loggf
-
-		f1=om.read(4)
-		f=om.read(5) #EWin
-
-		g1=om.read(4)
-		g=om.read(6) #logRwin
-
-		h1=om.read(4)
-		h=om.read(6) #abundance
-
-		i1=om.read(3)
-		i=om.read(7) #delavg
-
-
-		#NLTE calculation
-
-		w=np.where(np.abs(float(b)-rwv)<10**-1)
-		
-		if tuple(w[0])==():
-			nlte=0
-			if rem==1:
-				continue #continues cycle without printing nlte abundance
+	for i in range(size):
+		k+=1
+		h=om.readline() #readline
 			
-		else:
-			abund=iron_nlte(10.,t,logg,fe,x,w[0][0])
-			nlte=abund[1]
-			if nlte==-9:
-				ml.write(b)
-				ml.write("\n")
-				if rem==1:
-					continue #continues cycle without printing nlte abundance
+		if "II" not in h.split():
+			
+			####analyze .txt line####
+	
+			if len(h.split()) == 0: #empty line
+				omnew.write(h)
+				continue
+
+	
+			if h[2] not in numbers or h[3] not in numbers: #if .txt line has only information
+
+				if "Teff=" in h.split():
+					t=float(h.split()[1])
+					logg=float(h.split()[4])
+					fe=float(h.split()[8])
+					x=float(h.split()[6])
+					omnew.write(h)
+			
+				elif "#lines" in h.split():
+					newline=h.replace(h.split()[-1],"%i"%r) 
+					av_nlte_I=sum(nlte_values_I)/len(nlte_values_I)
+					newline=newline.replace(newline.split()[3],"%.4f"%av_nlte_I)
+					#std_nlte_I=np.std(nlte_values_I)
+					#newline=newline.replace(newline.split()[6],"%.4f"%std_nlte_I)
+					omnew.write(newline)
+				else:
+					omnew.write(h)
 
 
 
-		#write to the new txt file
-		omnew.write(b1),omnew.write(b),omnew.write(c1),omnew.write(c),omnew.write(d1),omnew.write(d),omnew.write(e1),omnew.write(e),omnew.write(f1),omnew.write(f),omnew.write(g1),omnew.write(g),omnew.write(h1),omnew.write(str("%.4f" % nlte)),omnew.write(i1),omnew.write(i)
+			elif h[2] in numbers or h[3] in numbers: #if .txt line is an iron line
+
+				r+=1
+				wavel=h.split()[0]
+				
+				###NLTE calculation###
+				w=np.where(np.abs(float(wavel)-rwv)<10**-1)
+		
+				if tuple(w[0])==():
+					nlte=0
+					j=np.append(j,i)
+					ml.write(wavel)
+					ml.write("\n")
+					if rem==1:
+						r-=1
+						continue #continues cycle without printing nlte abundance
+				else:
+					abund=iron_nlte(10.,t,logg,fe,x,w[0][0])
+					nlte=abund[1]
+					if nlte==-9:
+						j=np.append(j,i)
+						ml.write(wavel)
+						ml.write("\n")
+						if rem==1:
+							r-=1
+							continue #continues cycle without printing nlte abundance
+			
+					else:
+						nlte_values_I=np.append(nlte_values_I,nlte)
+
+				newline=h.replace(h.split()[6],"%.4f"%nlte) 
+				omnew.write(newline) #write the line with nlte abundance
 
 
-	#####FE II#####
-	f1=om.read(72+80+80+80+1)
+			else:
+				omnew.write(h)
 
-	f=om.read(71+76) #header
-	omnew.write("\n\n\n\n")
-	omnew.write(f)
+	
+		else: 
+			break
+		
+
+
+	################################### FE II ###################################
 
 	ml.write("\n\nFE II \n")
 
-	for i in range(35): #info about lines
+	r=0 #count line number for #lines
+
+	for i in range(k,size):
+
+		h=om.readline() #readline
+
+		####analyze .txt line####
+
+		if len(h.split()) == 0: #empty line
+			omnew.write(h)
+			continue
+	
+		if h[2] not in numbers or h[3] not in numbers: #if .txt line has only information
+
+			if "Teff=" in h.split():
+				t=float(h.split()[1])
+				logg=float(h.split()[4])
+				fe=float(h.split()[8])
+				x=float(h.split()[6])
+				omnew.write(h)
+			
+			elif "#lines" in h.split():
+				newline=h.replace(h.split()[-1],"%i"%r) 
+				av_nlte_II=sum(nlte_values_I)/len(nlte_values_II)
+				newline=newline.replace(newline.split()[3],"%.4f"%av_nlte_II)
+				#std_nlte_II=np.std(nlte_values_II)
+				#newline=newline.replace(newline.split()[6],"%.4f"%std_nlte_II)
+				omnew.write(newline)
+			else:
+				omnew.write(h)
+
+
+		elif h[2] in numbers or h[3] in numbers: #if .txt line is an iron line
+			
+			r+=1
+			wavel=h.split()[0]
+				
+			###NLTE calculation###
+			w=np.where(np.abs(float(wavel)-rwv)<10**-1)
 		
-		b1=om.read(2)
-		b=om.read(8) #wavelenght
-
-		c1=om.read(3)
-		c=om.read(8) #ID
-
-		d1=om.read(3)
-		d=om.read(5) #EP
-
-		e1=om.read(2)
-		e=om.read(6) #loggf
-
-		f1=om.read(4)
-		f=om.read(5) #EWin
-
-		g1=om.read(4)
-		g=om.read(6) #logRwin
-
-		h1=om.read(4)
-		h=om.read(6) #abundance
-
-		i1=om.read(3)
-		i=om.read(7) #delavg
-
-
-		#NLTE calculation
-
-		w=np.where(np.abs(float(b)-rwv)<10**-1)
-		
-		if tuple(w[0])==():
-			nlte=0
-			if rem==1:
-				continue #continues cycle without printing nlte abundance
-		
-		else:
-			abund=iron_nlte(10.,t,logg,fe,x,w[0][0])
-			nlte=abund[1]
-			if nlte==-9:
-				ml.write(b)
+			if tuple(w[0])==():
+				nlte=0
+				l=np.append(l,i)
+				ml.write(wavel)
 				ml.write("\n")
 				if rem==1:
+					r-=1
 					continue #continues cycle without printing nlte abundance
+			else:
+				abund=iron_nlte(10.,t,logg,fe,x,w[0][0])
+				nlte=abund[1]
+				if nlte==-9:
+					l=np.append(l,i)
+					ml.write(wavel)
+					ml.write("\n")
+					if rem==1:
+						r-=1
+						continue #continues cycle without printing nlte abundance
+			
+				else:
+					nlte_values_II=np.append(nlte_values_II,nlte)
 
+			newline=h.replace(h.split()[6],"%.4f"%nlte) 
+			omnew.write(newline) #write the line with nlte abundance
 
-		#write to the new txt file
-		omnew.write(b1),omnew.write(b),omnew.write(c1),omnew.write(c),omnew.write(d1),omnew.write(d),omnew.write(e1),omnew.write(e),omnew.write(f1),omnew.write(f),omnew.write(g1),omnew.write(g),omnew.write(h1),omnew.write(str("%.4f" % nlte)),omnew.write(i1),omnew.write(i)
-
+	
+		else:
+			omnew.write(h)
 
 	om.close()	
 	omnew.close()
 	ml.close()
+
+
+
+	###change nlte abundance to the average nlte abundance (for the null nlte values lines)###
+
+	if rem==0:
+
+		omnew1=open(name_ofile_nlte,'r')
+		size2=len(omnew1.readlines())
+		omnew1=open(name_ofile_nlte,'r')
+	
+		omnew2=open(name_ofile_nlte_0,'w') 
+
+		#insert average value	
+		for i in range(size2):
+			h=omnew1.readline() #readline 
+
+			if i in j:
+				newline=h.replace(newline.split()[6],"%.4f"%av_nlte_I)
+				omnew2.write(newline) #write the line with average nlte abundance
+
+			elif i in l:
+				newline=h.replace(newline.split()[6],"%.4f"%av_nlte_II)
+				omnew2.write(newline) #write the line with average nlte abundance
+
+			else:
+				omnew2.write(h)	
+
+	
+		omnew2.close()
+		os.remove(name_ofile_nlte)
+
