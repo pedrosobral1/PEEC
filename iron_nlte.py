@@ -3,6 +3,24 @@
 import numpy as np
 import inspect as ip
 import scipy.io as io
+import time
+
+######common variables######
+r=io.readsav('/home/pedrosobral/PEEC/NLTE/iron_grid.sav')
+rwl=r.get('wl')
+rwn=r.get('wn')
+rfg=r.get('fg')
+rtg=r.get('tg')
+rgg=r.get('gg')
+rxg=r.get('xg')	
+rwv=r.get('wv')
+rgf=r.get('gf')
+rel=r.get('el')
+rio=r.get('io')
+
+
+##########################################################################
+
 
 def find_index(y,x): #y,x are arrays
 	ii=np.where(np.absolute(y-x) < 1e-8) #tuple (array([index]),)
@@ -56,24 +74,6 @@ silent=True #False = prints everything
 
 def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	
-	#####verify input parameters#####
-	if len(tuple(ip.getargspec(iron_nlte)[0])) != 8:
-		print ('CALLING SEQUENCE:\n	a=iron_nlte(e,t,g,f,x,w,/al) \nINPUTS: \n       e          [0.1,500]       Equivalent width [pm] (optional)\n       t          [4000.0,8000.0] Effective temperature [K])\n       g          [1.0,5.0]       Logarithm of surface gravity [cgs]\n       f          [-5.0,0.5]      Metallicity [Fe/H] (LTE)\n       x          [1,5]           Microturbulence [km/s]\n       w          [0,3345]        Line index\n\n       al         [0,1]           If flag is set, f is fixed and e\n                                  returned (optional)\n')                                                 
-		return [-9,-9,-9]
-	
-	######common variables######
-	r=io.readsav('/home/pedrosobral/PEEC/NLTE/iron_grid.sav')
-	rwl=r.get('wl')
-	rwn=r.get('wn')
-	rfg=r.get('fg')
-	rtg=r.get('tg')
-	rgg=r.get('gg')
-	rxg=r.get('xg')	
-	rwv=r.get('wv')
-	rgf=r.get('gf')
-	rel=r.get('el')
-	rio=r.get('io')
-
 	mg,f=rfg+7.45,f+7.45
 
 	#####finds temp, surf grav and microturb indices#####
@@ -133,7 +133,6 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 			print ('Maximum microturbulence=2.0 for logg>3.0')
 		return np.array([-9,-9,-9])
 	
-
 	
 	######defines arrays with wl e wn values (r is a dictionary with common variables)######
 	
@@ -269,3 +268,4 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 		co=an-al
 
 	return [al,an,co]
+	
