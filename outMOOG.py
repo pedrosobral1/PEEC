@@ -67,7 +67,7 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 	
 
 
-	########### READING AND WRITING FILES ##########
+	################################### READING AND WRITING FILES ###################################
 
 	size=len(om.readlines())
 	
@@ -77,28 +77,31 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 
 	j=np.array([]) #acumulate for FE I
 	l=np.array([]) #acumulate for FE II
+
 	nlte_values_I=np.array([])	
 	nlte_values_II=np.array([])
 	
 	k=0 #count number of iterations
 	r=0 #count line number for #lines
 
+
 	################################### FE I ###################################
 
 	for i in range(size):
 		k+=1
-		h=om.readline() #readline
+		h=om.readline()
 			
-		if "II" not in h.split():
+		if "II" not in h.split(): #while we analyze FE I lines
 			
-			####analyze .txt line####
+
+			########analyze .txt line########
 	
-			if len(h.split()) == 0: #empty line
+			if len(h.split()) == 0: #empty txt line
 				omnew.write(h)
 				continue
 
 	
-			if h[2] not in numbers or h[3] not in numbers: #if .txt line has only information
+			if h[2] not in numbers or h[3] not in numbers: #txt line has only information
 
 				if "Teff=" in h.split():
 					t=float(h.split()[1])
@@ -110,7 +113,7 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 				elif "#lines" in h.split():
 					newline=h.replace(h.split()[-1],"%i"%r) 
 					av_nlte_I=sum(nlte_values_I)/len(nlte_values_I)
-					newline=newline.replace(newline.split()[3],"%.4f"%av_nlte_I)
+					newline=newline.replace(newline.split()[3],"%.6f"%av_nlte_I)
 					#std_nlte_I=np.std(nlte_values_I)
 					#newline=newline.replace(newline.split()[6],"%.4f"%std_nlte_I)
 					omnew.write(newline)
@@ -119,7 +122,7 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 
 
 
-			elif h[2] in numbers or h[3] in numbers: #if .txt line is an iron line
+			elif h[2] in numbers or h[3] in numbers: #txt line is an iron line
 
 				r+=1
 				wavel=h.split()[0]
@@ -135,8 +138,18 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 					if rem==1:
 						r-=1
 						continue #continues cycle without printing nlte abundance
+					else:
+						if len(h.split()[6])==7:
+							newline=h.replace(h.split()[6]," %.6f"%nlte)
+							omnew.write(newline) 
+							continue
+						else:
+							newline=h.replace(h.split()[6],"%.6f"%nlte) 
+							omnew.write(newline) 
+							continue 
+
 				else:
-					abund=iron_nlte(10.,t,logg,fe,x,w[0][0])
+					abund=iron_nlte(10.,t,logg,fe,x,w[0][0]) 
 					nlte=abund[1]
 					if nlte==-9:
 						j=np.append(j,i)
@@ -145,12 +158,26 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 						if rem==1:
 							r-=1
 							continue #continues cycle without printing nlte abundance
+						else:
+							if len(h.split()[6])==7:
+								newline=h.replace(h.split()[6]," %.5f"%nlte)
+								omnew.write(newline)
+								continue 
+							else:
+								newline=h.replace(h.split()[6],"%.5f"%nlte) 
+								omnew.write(newline)
+								continue
 			
 					else:
 						nlte_values_I=np.append(nlte_values_I,nlte)
-
-				newline=h.replace(h.split()[6],"%.4f"%nlte) 
-				omnew.write(newline) #write the line with nlte abundance
+ 						if len(h.split()[6])==7:
+							newline=h.replace(h.split()[6]," %.6f"%nlte) 
+							omnew.write(newline)
+							continue
+						else:
+							newline=h.replace(h.split()[6],"%.6f"%nlte) 
+							omnew.write(newline)
+							continue 
 
 
 			else:
@@ -170,15 +197,15 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 
 	for i in range(k,size):
 
-		h=om.readline() #readline
+		h=om.readline() 
 
-		####analyze .txt line####
+		#########analyze txt line#########
 
-		if len(h.split()) == 0: #empty line
+		if len(h.split()) == 0: #empty txt line
 			omnew.write(h)
 			continue
 	
-		if h[2] not in numbers or h[3] not in numbers: #if .txt line has only information
+		if h[2] not in numbers or h[3] not in numbers: #txt line has only information
 
 			if "Teff=" in h.split():
 				t=float(h.split()[1])
@@ -189,8 +216,8 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 			
 			elif "#lines" in h.split():
 				newline=h.replace(h.split()[-1],"%i"%r) 
-				av_nlte_II=sum(nlte_values_I)/len(nlte_values_II)
-				newline=newline.replace(newline.split()[3],"%.4f"%av_nlte_II)
+				av_nlte_II=sum(nlte_values_II)/len(nlte_values_II)
+				newline=newline.replace(newline.split()[3],"%.6f"%av_nlte_II)
 				#std_nlte_II=np.std(nlte_values_II)
 				#newline=newline.replace(newline.split()[6],"%.4f"%std_nlte_II)
 				omnew.write(newline)
@@ -198,7 +225,7 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 				omnew.write(h)
 
 
-		elif h[2] in numbers or h[3] in numbers: #if .txt line is an iron line
+		elif h[2] in numbers or h[3] in numbers: #txt line is an iron line
 			
 			r+=1
 			wavel=h.split()[0]
@@ -214,8 +241,18 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 				if rem==1:
 					r-=1
 					continue #continues cycle without printing nlte abundance
+				else:
+					if len(h.split()[6])==7:
+						newline=h.replace(h.split()[6]," %.6f"%nlte) 
+						omnew.write(newline)
+						continue
+					else:
+						newline=h.replace(h.split()[6],"%.6f"%nlte) 
+						omnew.write(newline)
+						continue 
+
 			else:
-				abund=iron_nlte(10.,t,logg,fe,x,w[0][0])
+				abund=iron_nlte(10.,t,logg,fe,x,w[0][0]) #calculate NLTE abundance
 				nlte=abund[1]
 				if nlte==-9:
 					l=np.append(l,i)
@@ -224,14 +261,28 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 					if rem==1:
 						r-=1
 						continue #continues cycle without printing nlte abundance
-			
+					else:
+						if len(h.split()[6])==7:
+							newline=h.replace(h.split()[6]," %.5f"%nlte)
+							omnew.write(newline)
+							continue 
+						else:
+							newline=h.replace(h.split()[6],"%.5f"%nlte) 
+							omnew.write(newline) 
+							continue 
+					
 				else:
 					nlte_values_II=np.append(nlte_values_II,nlte)
+					if len(h.split()[6])==7:
+						newline=h.replace(h.split()[6]," %.6f"%nlte) 
+						omnew.write(newline)
+						continue
+					else:
+						newline=h.replace(h.split()[6],"%.6f"%nlte) 
+						omnew.write(newline)
+						continue 
 
-			newline=h.replace(h.split()[6],"%.4f"%nlte) 
-			omnew.write(newline) #write the line with nlte abundance
 
-	
 		else:
 			omnew.write(h)
 
@@ -239,12 +290,14 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 	omnew.close()
 	ml.close()
 
+	
 
 
 	###change nlte abundance to the average nlte abundance (for the null nlte values lines)###
 
 	if rem==0:
 
+		print av_nlte_I,av_nlte_II
 		omnew1=open(name_ofile_nlte,'r')
 		size2=len(omnew1.readlines())
 		omnew1=open(name_ofile_nlte,'r')
@@ -256,11 +309,11 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 			h=omnew1.readline() #readline 
 
 			if i in j:
-				newline=h.replace(newline.split()[6],"%.4f"%av_nlte_I)
+				newline=h.replace(newline.split()[6],"%.6f"%av_nlte_I)
 				omnew2.write(newline) #write the line with average nlte abundance
 
 			elif i in l:
-				newline=h.replace(newline.split()[6],"%.4f"%av_nlte_II)
+				newline=h.replace(newline.split()[6],"%.6f"%av_nlte_II)
 				omnew2.write(newline) #write the line with average nlte abundance
 
 			else:
@@ -269,4 +322,3 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 	
 		omnew2.close()
 		os.remove(name_ofile_nlte)
-
