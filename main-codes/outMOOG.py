@@ -1,11 +1,13 @@
 # coding=utf-8
 
+
 import os
 import numpy as np
 import scipy.io as io
 from iron_nlte import iron_nlte
 import matplotlib.pyplot as pl
 import shutil
+import sys
 
 r=io.readsav('/home/pedrosobral/PEEC/NLTE/iron_grid.sav')
 rwv=r.get('wv')*10
@@ -33,8 +35,8 @@ rwv=r.get('wv')*10
 #	outmoog("/home/pedrosobral/PEEC","output","/home/pedrosobral/results","mine",1)
 
 
-def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
-		'FUNCTION readoutmoog:\n    it uses iron_nlte function to calculate NLTE abundances for some iron lines. These lines are given by an input file (obtained using MOOG method).\n\nINPUTS:\n    dir_input      directory of the MOOG input file (str)\n    name_input     name of the input MOOG file to read (str)\n    dir_output     directory for the output file (str)\n    name_output    name of the output txt files (str)\n    rem            removes (1) or keeps (0) the null nlte values.If 0 is chosen, it calculates the average NLTE abundance for those null points\n\nOUTPUTS:\n    3 txt files (lte, nlte abundances and lines with null nlte values).\n\nCALLING EXAMPLE:\n    outmoog("/home/pedrosobral/PEEC","output","/home/pedrosobral/results","mine",1)'
+def outmoog(dir_input,name_input,dir_output,name_output,rem):
+	'FUNCTION readoutmoog:\n    it uses iron_nlte function to calculate NLTE abundances for some iron lines. These lines are given by an input file (obtained using MOOG method).\n\nINPUTS:\n    dir_input      directory of the MOOG input file (str)\n    name_input     name of the input MOOG file to read (str)\n    dir_output     directory for the output file (str)\n    name_output    name of the output txt files (str)\n    rem            removes (1) or keeps (0) the null nlte values.If 0 is chosen, it calculates the average NLTE abundance for those null points\n\nOUTPUTS:\n    3 txt files (lte, nlte abundances and lines with null nlte values).\n\nCALLING EXAMPLE:\n    outmoog("/home/pedrosobral/PEEC","output","/home/pedrosobral/results","mine",1)'
 
 
 	name_ifile="%s/%s.moog" %(dir_input,name_input)
@@ -322,3 +324,7 @@ def readoutmoog(dir_input,name_input,dir_output,name_output,rem):
 	
 		omnew2.close()
 		os.remove(name_ofile_nlte)
+
+if __name__ == '__main__':
+	outmoog(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],float(sys.argv[5]))
+	
