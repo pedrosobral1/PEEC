@@ -38,3 +38,7 @@ def nlte_correction(t,logg,fe,x,rem):
 		pl.xlabel('LTE-NLTE',color='b')
 		pdf.savefig()
 		pl.clf()
+
+if __name__ == '__main__':
+	nlte_correction(float(sys.argv[1]),float(sys.argv[2]),float(sys.argv[3]),float(sys.argv[4]),float(sys.argv[5]))
+	
