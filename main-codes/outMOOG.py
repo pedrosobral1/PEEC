@@ -300,8 +300,7 @@ def outmoog(dir_input,name_input,dir_output,name_output,rem):
 	###change nlte abundance to the average nlte abundance (for the null nlte values lines)###
 
 	if rem==0:
-
-		print av_nlte_I,av_nlte_II
+		
 		omnew1=open(name_ofile_nlte,'r')
 		size2=len(omnew1.readlines())
 		omnew1=open(name_ofile_nlte,'r')
