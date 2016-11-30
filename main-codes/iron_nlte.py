@@ -4,9 +4,13 @@ import numpy as np
 import inspect as ip
 import scipy.io as io
 import time
+import sys
+import os
+import ast
 
 ######common variables######
 r=io.readsav('/home/pedrosobral/PEEC/NLTE/iron_grid.sav')
+#r=ast.literal_eval(os.environ["IRON_GRID"])
 rwl=r.get('wl')
 rwn=r.get('wn')
 rfg=r.get('fg')
@@ -45,6 +49,7 @@ def find_index(y,x): #y,x are arrays
 
 	return i
 
+t0=time.clock()
 ##########################################################################
 
 #FUNCTION iron_nlte:
@@ -74,6 +79,13 @@ silent=True #False = prints everything
 
 def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	
+	#####verify input parameters#####
+	#if len(tuple(ip.getargspec(iron_nlte)[0])) != 8:
+		#print ('CALLING SEQUENCE:\n	a=iron_nlte(e,t,g,f,x,w,/al) \nINPUTS: \n       e          [0.1,500]       Equivalent width [pm] (optional)\n       t          [4000.0,8000.0] Effective temperature [K])\n       g          [1.0,5.0]       Logarithm of surface gravity [cgs]\n       f          [-5.0,0.5]      Metallicity [Fe/H] (LTE)\n       x          [1,5]           Microturbulence [km/s]\n       w          [0,3345]        Line index\n\n       al         [0,1]           If flag is set, f is fixed and e\n                                  returned (optional)\n')                                                 
+		#return [-9,-9,-9]
+	
+	t1=time.clock()
+
 	mg,f=rfg+7.45,f+7.45
 
 	#####finds temp, surf grav and microturb indices#####
@@ -133,6 +145,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 			print ('Maximum microturbulence=2.0 for logg>3.0')
 		return np.array([-9,-9,-9])
 	
+	t2=time.clock()
 	
 	######defines arrays with wl e wn values (r is a dictionary with common variables)######
 	
@@ -142,6 +155,7 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	sn=np.array([[[[rwn[li,xi[0],0,gi[0],ti[0]],rwn[li,xi[0],0,gi[0],ti[1]]],[rwn[li,xi[0],0,gi[1],ti[0]],rwn[li,xi[0],0,gi[1],ti[1]]]],[[rwn[li,xi[0],1,gi[0],ti[0]],rwn[li,xi[0],1,gi[0],ti[1]]],[rwn[li,xi[0],1,gi[1],ti[0]],rwn[li,xi[0],1,gi[1],ti[1]]]],[[rwn[li,xi[0],2,gi[0],ti[0]],rwn[li,xi[0],2,gi[0],ti[1]]],[rwn[li,xi[0],2,gi[1],ti[0]],rwn[li,xi[0],2,gi[1],ti[1]]]],[[rwn[li,xi[0],3,gi[0],ti[0]],rwn[li,xi[0],3,gi[0],ti[1]]],[rwn[li,xi[0],3,gi[1],ti[0]],rwn[li,xi[0],3,gi[1],ti[1]]]],[[rwn[li,xi[0],4,gi[0],ti[0]],rwn[li,xi[0],4,gi[0],ti[1]]],[rwn[li,xi[0],4,gi[1],ti[0]],rwn[li,xi[0],4,gi[1],ti[1]]]],[[rwn[li,xi[0],5,gi[0],ti[0]],rwn[li,xi[0],5,gi[0],ti[1]]],[rwn[li,xi[0],5,gi[1],ti[0]],rwn[li,xi[0],5,gi[1],ti[1]]]],[[rwn[li,xi[0],6,gi[0],ti[0]],rwn[li,xi[0],6,gi[0],ti[1]]],[rwn[li,xi[0],6,gi[1],ti[0]],rwn[li,xi[0],6,gi[1],ti[1]]]],[[rwn[li,xi[0],7,gi[0],ti[0]],rwn[li,xi[0],7,gi[0],ti[1]]],[rwn[li,xi[0],7,gi[1],ti[0]],rwn[li,xi[0],7,gi[1],ti[1]]]],[[rwn[li,xi[0],8,gi[0],ti[0]],rwn[li,xi[0],8,gi[0],ti[1]]],[rwn[li,xi[0],8,gi[1],ti[0]],rwn[li,xi[0],8,gi[1],ti[1]]]],[[rwn[li,xi[0],9,gi[0],ti[0]],rwn[li,xi[0],9,gi[0],ti[1]]],[rwn[li,xi[0],9,gi[1],ti[0]],rwn[li,xi[0],9,gi[1],ti[1]]]],[[rwn[li,xi[0],10,gi[0],ti[0]],rwn[li,xi[0],10,gi[0],ti[1]]],[rwn[li,xi[0],10,gi[1],ti[0]],rwn[li,xi[0],10,gi[1],ti[1]]]],[[rwn[li,xi[0],11,gi[0],ti[0]],rwn[li,xi[0],11,gi[0],ti[1]]],[rwn[li,xi[0],11,gi[1],ti[0]],rwn[li,xi[0],11,gi[1],ti[1]]]],[[rwn[li,xi[0],12,gi[0],ti[0]],rwn[li,xi[0],12,gi[0],ti[1]]],[rwn[li,xi[0],12,gi[1],ti[0]],rwn[li,xi[0],12,gi[1],ti[1]]]],[[rwn[li,xi[0],13,gi[0],ti[0]],rwn[li,xi[0],13,gi[0],ti[1]]],[rwn[li,xi[0],13,gi[1],ti[0]],rwn[li,xi[0],13,gi[1],ti[1]]]],[[rwn[li,xi[0],14,gi[0],ti[0]],rwn[li,xi[0],14,gi[0],ti[1]]],[rwn[li,xi[0],14,gi[1],ti[0]],rwn[li,xi[0],14,gi[1],ti[1]]]],[[rwn[li,xi[0],15,gi[0],ti[0]],rwn[li,xi[0],15,gi[0],ti[1]]],[rwn[li,xi[0],15,gi[1],ti[0]],rwn[li,xi[0],15,gi[1],ti[1]]]],[[rwn[li,xi[0],16,gi[0],ti[0]],rwn[li,xi[0],16,gi[0],ti[1]]],[rwn[li,xi[0],16,gi[1],ti[0]],rwn[li,xi[0],16,gi[1],ti[1]]]],[[rwn[li,xi[0],17,gi[0],ti[0]],rwn[li,xi[0],17,gi[0],ti[1]]],[rwn[li,xi[0],17,gi[1],ti[0]],rwn[li,xi[0],17,gi[1],ti[1]]]],[[rwn[li,xi[0],18,gi[0],ti[0]],rwn[li,xi[0],18,gi[0],ti[1]]],[rwn[li,xi[0],18,gi[1],ti[0]],rwn[li,xi[0],18,gi[1],ti[1]]]],[[rwn[li,xi[0],19,gi[0],ti[0]],rwn[li,xi[0],19,gi[0],ti[1]]],[rwn[li,xi[0],19,gi[1],ti[0]],rwn[li,xi[0],19,gi[1],ti[1]]]],[[rwn[li,xi[0],20,gi[0],ti[0]],rwn[li,xi[0],20,gi[0],ti[1]]],[rwn[li,xi[0],20,gi[1],ti[0]],rwn[li,xi[0],20,gi[1],ti[1]]]],[[rwn[li,xi[0],21,gi[0],ti[0]],rwn[li,xi[0],21,gi[0],ti[1]]],[rwn[li,xi[0],21,gi[1],ti[0]],rwn[li,xi[0],21,gi[1],ti[1]]]],[[rwn[li,xi[0],22,gi[0],ti[0]],rwn[li,xi[0],22,gi[0],ti[1]]],[rwn[li,xi[0],22,gi[1],ti[0]],rwn[li,xi[0],22,gi[1],ti[1]]]]],
 [[[rwn[li,xi[1],0,gi[0],ti[0]],rwn[li,xi[1],0,gi[0],ti[1]]],[rwn[li,xi[1],0,gi[1],ti[0]],rwn[li,xi[1],0,gi[1],ti[1]]]],[[rwn[li,xi[1],1,gi[0],ti[0]],rwn[li,xi[1],1,gi[0],ti[1]]],[rwn[li,xi[1],1,gi[1],ti[0]],rwn[li,xi[1],1,gi[1],ti[1]]]],[[rwn[li,xi[1],2,gi[0],ti[0]],rwn[li,xi[1],2,gi[0],ti[1]]],[rwn[li,xi[1],2,gi[1],ti[0]],rwn[li,xi[1],2,gi[1],ti[1]]]],[[rwn[li,xi[1],3,gi[0],ti[0]],rwn[li,xi[1],3,gi[0],ti[1]]],[rwn[li,xi[1],3,gi[1],ti[0]],rwn[li,xi[1],3,gi[1],ti[1]]]],[[rwn[li,xi[1],4,gi[0],ti[0]],rwn[li,xi[1],4,gi[0],ti[1]]],[rwn[li,xi[1],4,gi[1],ti[0]],rwn[li,xi[1],4,gi[1],ti[1]]]],[[rwn[li,xi[1],5,gi[0],ti[0]],rwn[li,xi[1],5,gi[0],ti[1]]],[rwn[li,xi[1],5,gi[1],ti[0]],rwn[li,xi[1],5,gi[1],ti[1]]]],[[rwn[li,xi[1],6,gi[0],ti[0]],rwn[li,xi[1],6,gi[0],ti[1]]],[rwn[li,xi[1],6,gi[1],ti[0]],rwn[li,xi[1],6,gi[1],ti[1]]]],[[rwn[li,xi[1],7,gi[0],ti[0]],rwn[li,xi[1],7,gi[0],ti[1]]],[rwn[li,xi[1],7,gi[1],ti[0]],rwn[li,xi[1],7,gi[1],ti[1]]]],[[rwn[li,xi[1],8,gi[0],ti[0]],rwn[li,xi[1],8,gi[0],ti[1]]],[rwn[li,xi[1],8,gi[1],ti[0]],rwn[li,xi[1],8,gi[1],ti[1]]]],[[rwn[li,xi[1],9,gi[0],ti[0]],rwn[li,xi[1],9,gi[0],ti[1]]],[rwn[li,xi[1],9,gi[1],ti[0]],rwn[li,xi[1],9,gi[1],ti[1]]]],[[rwn[li,xi[1],10,gi[0],ti[0]],rwn[li,xi[1],10,gi[0],ti[1]]],[rwn[li,xi[1],10,gi[1],ti[0]],rwn[li,xi[1],10,gi[1],ti[1]]]],[[rwn[li,xi[1],11,gi[0],ti[0]],rwn[li,xi[1],11,gi[0],ti[1]]],[rwn[li,xi[1],11,gi[1],ti[0]],rwn[li,xi[1],11,gi[1],ti[1]]]],[[rwn[li,xi[1],12,gi[0],ti[0]],rwn[li,xi[1],12,gi[0],ti[1]]],[rwn[li,xi[1],12,gi[1],ti[0]],rwn[li,xi[1],12,gi[1],ti[1]]]],[[rwn[li,xi[1],13,gi[0],ti[0]],rwn[li,xi[1],13,gi[0],ti[1]]],[rwn[li,xi[1],13,gi[1],ti[0]],rwn[li,xi[1],13,gi[1],ti[1]]]],[[rwn[li,xi[1],14,gi[0],ti[0]],rwn[li,xi[1],14,gi[0],ti[1]]],[rwn[li,xi[1],14,gi[1],ti[0]],rwn[li,xi[1],14,gi[1],ti[1]]]],[[rwn[li,xi[1],15,gi[0],ti[0]],rwn[li,xi[1],15,gi[0],ti[1]]],[rwn[li,xi[1],15,gi[1],ti[0]],rwn[li,xi[1],15,gi[1],ti[1]]]],[[rwn[li,xi[1],16,gi[0],ti[0]],rwn[li,xi[1],16,gi[0],ti[1]]],[rwn[li,xi[1],16,gi[1],ti[0]],rwn[li,xi[1],16,gi[1],ti[1]]]],[[rwn[li,xi[1],17,gi[0],ti[0]],rwn[li,xi[1],17,gi[0],ti[1]]],[rwn[li,xi[1],17,gi[1],ti[0]],rwn[li,xi[1],17,gi[1],ti[1]]]],[[rwn[li,xi[1],18,gi[0],ti[0]],rwn[li,xi[1],18,gi[0],ti[1]]],[rwn[li,xi[1],18,gi[1],ti[0]],rwn[li,xi[1],18,gi[1],ti[1]]]],[[rwn[li,xi[1],19,gi[0],ti[0]],rwn[li,xi[1],19,gi[0],ti[1]]],[rwn[li,xi[1],19,gi[1],ti[0]],rwn[li,xi[1],19,gi[1],ti[1]]]],[[rwn[li,xi[1],20,gi[0],ti[0]],rwn[li,xi[1],20,gi[0],ti[1]]],[rwn[li,xi[1],20,gi[1],ti[0]],rwn[li,xi[1],20,gi[1],ti[1]]]],[[rwn[li,xi[1],21,gi[0],ti[0]],rwn[li,xi[1],21,gi[0],ti[1]]],[rwn[li,xi[1],21,gi[1],ti[0]],rwn[li,xi[1],21,gi[1],ti[1]]]],[[rwn[li,xi[1],22,gi[0],ti[0]],rwn[li,xi[1],22,gi[0],ti[1]]],[rwn[li,xi[1],22,gi[1],ti[0]],rwn[li,xi[1],22,gi[1],ti[1]]]]]])
 	
+	t3=time.clock()
 	nr=len(mg)
 	
 	#verify if all entries are -9
@@ -267,5 +281,8 @@ def iron_nlte(e,t,g,f,x,w,al=al,silent=silent):
 	else:
 		co=an-al
 
+	t4=time.clock()
 	return [al,an,co]
-	
+	#[t1-t0,t2-t1,t3-t2,t4-t3,t4-t0]
+
+

@@ -17,7 +17,7 @@ import sys
 #
 #INPUTS:
 #
-#	dir_input	directory of the MOOG input file (str)
+#	dir_input	directory of the input MOOG file (str)
 #	name_input	name of the input MOOG file to read (str)
 #	dir_output	directory for the output file (str)
 #	name_output	name of the output txt files (str)
